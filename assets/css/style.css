@@ -1,0 +1,56 @@
+/* ============================================================
+   RoomBook — style.css (Bootstrap 5 + custom)
+   ============================================================ */
+
+/* ── Login page ────────────────────────────────────────────── */
+.login-body {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-container { width: 100%; max-width: 440px; padding: 20px; }
+.login-card {
+  background: white;
+  padding: 35px 30px;
+  border-radius: 16px;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.rb-header {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+}
+.rb-logo {
+  width: 56px; height: 56px;
+  background: rgba(255,255,255,.2);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+
+/* ── Navbar ────────────────────────────────────────────────── */
+.rb-nav {
+  padding: 9px 15px;
+  border-radius: 8px;
+  color: #4b5563 !important;
+  font-weight: 500;
+  transition: .18s;
+  text-decoration: none;
+}
+.rb-nav:hover { background: #eff6ff; color: #1e40af !important; }
+.rb-nav.active { background: #2563eb; color: white !important; }
+
+/* ── Room cards ────────────────────────────────────────────── */
+.room-card { transition: .2s; }
+.room-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,.12) !important; }
+
+/* ── Progress bars (statistiques) ─────────────────────────── */
+.progress { border-radius: 6px; }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 576px) {
+  .rb-header { flex-direction: column; text-align: center; }
+  .login-card { padding: 24px 18px; }
+}
