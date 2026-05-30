@@ -9,7 +9,7 @@ $host    = "localhost";
 $port    = "3306";        // mettez 3307 si vous utilisez un port alternatif
 $dbname  = "roombook";
 $user    = "root";
-$pass    = "1234";
+$pass    = "";
 $charset = "utf8mb4";
 
 $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=$charset";

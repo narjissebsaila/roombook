@@ -1,7 +1,6 @@
 <?php
 /*
     pages/index.php — Liste des réservations
-    Tableau chargé via AJAX, suppression AJAX, modals Ajouter/Modifier Bootstrap
 */
 require_once "../auth/guard.php";
 require_once "../config/database.php";
@@ -15,6 +14,34 @@ $pageSubtitle = $isAdmin ? "Toutes les réservations" : "Vos réservations";
 
 require_once "../includes/header.php";
 ?>
+
+<?php
+/* Génère les <option> heures 00-23 */
+function optionsHeures($selected='') {
+  $out = '';
+  for ($h=0; $h<24; $h++) {
+    $v = str_pad($h,2,'0',STR_PAD_LEFT);
+    $sel = ($v === $selected) ? ' selected' : '';
+    $out .= "<option value=\"$v\"$sel>$v</option>";
+  }
+  return $out;
+}
+/* Génère les <option> minutes 00,15,30,45 */
+function optionsMinutes($selected='00') {
+  $out = '';
+  foreach (['00','15','30','45'] as $m) {
+    $sel = ($m === $selected) ? ' selected' : '';
+    $out .= "<option value=\"$m\"$sel>$m</option>";
+  }
+  return $out;
+}
+?>
+
+<style>
+.time-picker { display:flex; align-items:center; gap:4px; }
+.time-picker select { width:68px; }
+.time-picker span { font-weight:bold; font-size:1.1rem; line-height:1; }
+</style>
 
 <div class="container-fluid px-4 pb-5">
 
@@ -63,10 +90,10 @@ require_once "../includes/header.php";
     <nav><ul class="pagination pagination-sm mb-0" id="pagination"></ul></nav>
   </div>
 
-</div><!-- /container -->
+</div>
 
 <!-- ══════════════════════════════════════
-     MODAL — AJOUTER une réservation
+     MODAL — AJOUTER
 ══════════════════════════════════════ -->
 <div class="modal fade" id="modalAjouter" tabindex="-1">
   <div class="modal-dialog modal-lg">
@@ -95,13 +122,35 @@ require_once "../includes/header.php";
             <input type="date" name="date_reservation" class="form-control"
                    min="<?= date('Y-m-d') ?>" required>
           </div>
+
+          <!-- Heure début : selects manuels -->
           <div class="col-md-4">
             <label class="form-label fw-semibold">Heure début *</label>
-            <input type="time" name="heure_debut" class="form-control" required>
+            <div class="time-picker">
+              <select id="add_h_debut" class="form-select">
+                <?= optionsHeures('08') ?>
+              </select>
+              <span>:</span>
+              <select id="add_m_debut" class="form-select">
+                <?= optionsMinutes('00') ?>
+              </select>
+            </div>
+            <input type="hidden" name="heure_debut" id="add_heure_debut">
           </div>
+
+          <!-- Heure fin : selects manuels -->
           <div class="col-md-4">
             <label class="form-label fw-semibold">Heure fin *</label>
-            <input type="time" name="heure_fin" class="form-control" required>
+            <div class="time-picker">
+              <select id="add_h_fin" class="form-select">
+                <?= optionsHeures('10') ?>
+              </select>
+              <span>:</span>
+              <select id="add_m_fin" class="form-select">
+                <?= optionsMinutes('00') ?>
+              </select>
+            </div>
+            <input type="hidden" name="heure_fin" id="add_heure_fin">
           </div>
 
           <div class="col-md-6">
@@ -147,7 +196,7 @@ require_once "../includes/header.php";
 </div>
 
 <!-- ══════════════════════════════════════
-     MODAL — MODIFIER une réservation
+     MODAL — MODIFIER
 ══════════════════════════════════════ -->
 <div class="modal fade" id="modalModifier" tabindex="-1">
   <div class="modal-dialog modal-lg">
@@ -173,13 +222,35 @@ require_once "../includes/header.php";
             <label class="form-label fw-semibold">Date *</label>
             <input type="date" name="date_reservation" id="edit_date" class="form-control" required>
           </div>
+
+          <!-- Heure début modifier -->
           <div class="col-md-4">
             <label class="form-label fw-semibold">Heure début *</label>
-            <input type="time" name="heure_debut" id="edit_heure_debut" class="form-control" required>
+            <div class="time-picker">
+              <select id="edit_h_debut" class="form-select">
+                <?= optionsHeures() ?>
+              </select>
+              <span>:</span>
+              <select id="edit_m_debut" class="form-select">
+                <?= optionsMinutes() ?>
+              </select>
+            </div>
+            <input type="hidden" name="heure_debut" id="edit_heure_debut">
           </div>
+
+          <!-- Heure fin modifier -->
           <div class="col-md-4">
             <label class="form-label fw-semibold">Heure fin *</label>
-            <input type="time" name="heure_fin" id="edit_heure_fin" class="form-control" required>
+            <div class="time-picker">
+              <select id="edit_h_fin" class="form-select">
+                <?= optionsHeures() ?>
+              </select>
+              <span>:</span>
+              <select id="edit_m_fin" class="form-select">
+                <?= optionsMinutes() ?>
+              </select>
+            </div>
+            <input type="hidden" name="heure_fin" id="edit_heure_fin">
           </div>
 
           <div class="col-md-6">
@@ -250,6 +321,42 @@ const typeLabels = { prof:'👨‍🏫 Prof', etudiant:'🎓 Étudiant', autre:'
 
 let currentPage = 1;
 let pendingDeleteId = null;
+
+// ── Sync hidden inputs depuis les selects heure ──────────────
+function syncTime(hSel, mSel, hiddenId) {
+  const h = document.getElementById(hSel).value;
+  const m = document.getElementById(mSel).value;
+  document.getElementById(hiddenId).value = h + ':' + m;
+}
+function syncAllTimes() {
+  syncTime('add_h_debut',  'add_m_debut',  'add_heure_debut');
+  syncTime('add_h_fin',    'add_m_fin',    'add_heure_fin');
+  syncTime('edit_h_debut', 'edit_m_debut', 'edit_heure_debut');
+  syncTime('edit_h_fin',   'edit_m_fin',   'edit_heure_fin');
+}
+// Sync à chaque changement de select
+['add_h_debut','add_m_debut','add_h_fin','add_m_fin',
+ 'edit_h_debut','edit_m_debut','edit_h_fin','edit_m_fin'].forEach(id => {
+  document.getElementById(id).addEventListener('change', syncAllTimes);
+});
+syncAllTimes(); // init au chargement
+
+// ── Charger l'heure dans les selects (modal modifier) ────────
+function setTimePicker(prefix, timeStr) {
+  // timeStr format: "HH:MM" ou "HH:MM:SS"
+  if (!timeStr) return;
+  const parts = timeStr.split(':');
+  const h = parts[0] ? parts[0].padStart(2,'0') : '08';
+  const m = parts[1] ? parts[1].substring(0,2) : '00';
+  // Trouver la minute la plus proche parmi 00,15,30,45
+  const mOptions = ['00','15','30','45'];
+  const mVal = mOptions.reduce((prev,curr) =>
+    Math.abs(parseInt(curr)-parseInt(m)) < Math.abs(parseInt(prev)-parseInt(m)) ? curr : prev
+  );
+  document.getElementById(prefix + '_h').value = h;
+  document.getElementById(prefix + '_m').value = mVal;
+  syncTime(prefix + '_h', prefix + '_m', prefix.replace('edit_','edit_heure_').replace('add_','add_heure_'));
+}
 
 // ── showToast ────────────────────────────────────────────────
 function showToast(msg, type='success') {
@@ -347,14 +454,23 @@ function renderTable(rows) {
   document.querySelectorAll('.btn-modifier').forEach(btn => {
     btn.addEventListener('click', function() {
       const r = JSON.parse(this.dataset.r);
-      document.getElementById('edit_id').value            = r.id;
-      document.getElementById('edit_salle_id').value      = r.salle_id;
-      document.getElementById('edit_date').value          = r.date_reservation;
-      document.getElementById('edit_heure_debut').value   = r.heure_debut.substring(0,5);
-      document.getElementById('edit_heure_fin').value     = r.heure_fin.substring(0,5);
-      document.getElementById('edit_responsable').value   = r.responsable;
-      document.getElementById('edit_motif').value         = r.motif??'';
+      document.getElementById('edit_id').value          = r.id;
+      document.getElementById('edit_salle_id').value    = r.salle_id;
+      document.getElementById('edit_date').value        = r.date_reservation;
+      document.getElementById('edit_responsable').value = r.responsable;
+      document.getElementById('edit_motif').value       = r.motif??'';
       if (IS_ADMIN) document.getElementById('edit_statut').value = r.statut;
+
+      // Charger les heures dans les selects
+      const hd = r.heure_debut.substring(0,5).split(':');
+      const hf = r.heure_fin.substring(0,5).split(':');
+      document.getElementById('edit_h_debut').value = hd[0];
+      document.getElementById('edit_m_debut').value = hd[1] || '00';
+      document.getElementById('edit_h_fin').value   = hf[0];
+      document.getElementById('edit_m_fin').value   = hf[1] || '00';
+      syncTime('edit_h_debut','edit_m_debut','edit_heure_debut');
+      syncTime('edit_h_fin',  'edit_m_fin',  'edit_heure_fin');
+
       new bootstrap.Modal(document.getElementById('modalModifier')).show();
     });
   });
@@ -393,6 +509,7 @@ document.getElementById('searchInput').addEventListener('keyup', () => {
 
 // ── Ajouter ──────────────────────────────────────────────────
 document.getElementById('btnSauvegarderAjouter').addEventListener('click', () => {
+  syncAllTimes();
   const fd = new FormData(document.getElementById('formAjouter'));
   fetch('../api/store_reservation.php', {method:'POST', body:fd})
     .then(r=>r.json()).then(d => {
@@ -400,6 +517,7 @@ document.getElementById('btnSauvegarderAjouter').addEventListener('click', () =>
       if (d.ok) {
         bootstrap.Modal.getInstance(document.getElementById('modalAjouter')).hide();
         document.getElementById('formAjouter').reset();
+        syncAllTimes();
         loadTable(1);
       }
     });
@@ -407,6 +525,7 @@ document.getElementById('btnSauvegarderAjouter').addEventListener('click', () =>
 
 // ── Modifier ─────────────────────────────────────────────────
 document.getElementById('btnSauvegarderModifier').addEventListener('click', () => {
+  syncAllTimes();
   const fd = new FormData(document.getElementById('formModifier'));
   fetch('../api/update_reservation.php', {method:'POST', body:fd})
     .then(r=>r.json()).then(d => {

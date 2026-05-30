@@ -32,10 +32,16 @@ if ($date_reservation < date('Y-m-d'))
 if ($heure_debut >= $heure_fin)
     { echo json_encode(['ok'=>false,'msg'=>'L\'heure de début doit être inférieure à l\'heure de fin.']); exit; }
 
-$stmt = $pdo->prepare("SELECT id FROM reservations WHERE salle_id=? AND date_reservation=? AND statut!='annulee' AND heure_debut<? AND heure_fin>?");
+$stmt = $pdo->prepare("SELECT id FROM reservations WHERE salle_id=? AND date_reservation=? AND statut='confirmee' AND heure_debut<? AND heure_fin>?");
 $stmt->execute([$salle_id,$date_reservation,$heure_fin,$heure_debut]);
-if ($stmt->fetch() && $statut !== 'annulee')
-    { echo json_encode(['ok'=>false,'msg'=>'Cette salle est déjà réservée dans ce créneau.']); exit; }
+
+if ($stmt->fetch()) {
+    echo json_encode([
+        'ok'=>false,
+        'msg'=>'Cette salle est déjà réservée pour cette plage horaire.'
+    ]);
+    exit;
+} 
 
 $pdo->prepare("INSERT INTO reservations (utilisateur_id,salle_id,date_reservation,heure_debut,heure_fin,responsable,motif,statut) VALUES (?,?,?,?,?,?,?,?)")
     ->execute([$utilisateur_id,$salle_id,$date_reservation,$heure_debut,$heure_fin,$responsable,$motif,$statut]);
