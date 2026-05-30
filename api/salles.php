@@ -11,16 +11,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'delete') {
     echo json_encode(['ok'=>true,'msg'=>'Salle supprimée.']);
     exit;
 }
+// APRÈS
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'store') {
     if ($_SESSION['role'] !== 'admin') { echo json_encode(['ok'=>false,'msg'=>'Accès refusé']); exit; }
     $nom=$_POST['nom']??''; $capacite=(int)($_POST['capacite']??0);
     $localisation=$_POST['localisation']??''; $type_salle=$_POST['type_salle']??'cours'; $equipements=$_POST['equipements']??'';
     if (trim($nom)===''||$capacite<=0){echo json_encode(['ok'=>false,'msg'=>'Nom et capacité obligatoires.']);exit;}
     if (!in_array($type_salle,['cours','tp','reunion','amphi'])) $type_salle='cours';
+    // ✅ AJOUTÉ : vérification doublon nom + localisation
+    $stmtCheck = $pdo->prepare("SELECT id FROM salles WHERE LOWER(TRIM(nom))=LOWER(TRIM(?)) AND LOWER(TRIM(localisation))=LOWER(TRIM(?))");
+    $stmtCheck->execute([trim($nom), trim($localisation)]);
+    if ($stmtCheck->fetch()) {
+        echo json_encode(['ok'=>false,'msg'=>'Cette salle existe déjà (même nom et même localisation).']);exit;
+    }
     $pdo->prepare("INSERT INTO salles (nom,capacite,localisation,type_salle,equipements) VALUES (?,?,?,?,?)")
         ->execute([trim($nom),$capacite,trim($localisation),$type_salle,trim($equipements)]);
     echo json_encode(['ok'=>true,'msg'=>'Salle ajoutée.']);exit;
 }
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'update') {
     if ($_SESSION['role'] !== 'admin') { echo json_encode(['ok'=>false,'msg'=>'Accès refusé']); exit; }
     $id=(int)($_POST['id']??0); $nom=$_POST['nom']??''; $capacite=(int)($_POST['capacite']??0);

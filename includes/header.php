@@ -15,7 +15,7 @@ $current = basename($_SERVER["PHP_SELF"]);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body class="bg-light">
+<body class="rb-body">
 
 <!-- TOAST container -->
 <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999" id="toastContainer"></div>

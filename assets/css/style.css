@@ -4,11 +4,19 @@
 
 /* ── Login page ────────────────────────────────────────────── */
 .login-body {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #1e3a6e;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(135deg, #1e3a6e 0%, #2563eb 50%, #1e40af 100%);
+  background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px, 100% 100%;
+  background-attachment: fixed;
 }
 .login-container { width: 100%; max-width: 440px; padding: 20px; }
 .login-card {
@@ -65,4 +73,35 @@ input[type="time"]::-webkit-datetime-edit-ampm-field {
   display: none !important;
   width: 0;
   overflow: hidden;
+}
+/* ── Main app background ───────────────────────────────────── */
+.rb-body {
+  min-height: 100vh;
+  background-color: #e8edf5;
+  background-image:
+    linear-gradient(rgba(37,99,235,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,0.07) 1px, transparent 1px),
+    linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px),
+    linear-gradient(160deg, #dce8fb 0%, #e8edf5 40%, #f0f4fc 70%, #dde6f7 100%);
+  background-size: 40px 40px, 40px 40px, 200px 200px, 200px 200px, 100% 100%;
+  background-attachment: fixed;
+}
+
+.rb-body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120' opacity='0.045'%3E%3Crect x='10' y='10' width='100' height='80' rx='4' fill='none' stroke='%232563eb' stroke-width='3'/%3E%3Crect x='20' y='20' width='30' height='20' rx='2' fill='none' stroke='%232563eb' stroke-width='2'/%3E%3Crect x='60' y='20' width='35' height='20' rx='2' fill='none' stroke='%232563eb' stroke-width='2'/%3E%3Crect x='20' y='55' width='75' height='25' rx='2' fill='none' stroke='%232563eb' stroke-width='2'/%3E%3Cline x1='55' y1='10' x2='55' y2='90' stroke='%232563eb' stroke-width='1.5' stroke-dasharray='4,3'/%3E%3Cline x1='10' y1='48' x2='110' y2='48' stroke='%232563eb' stroke-width='1.5' stroke-dasharray='4,3'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80' opacity='0.04'%3E%3Ccircle cx='40' cy='40' r='30' fill='none' stroke='%231e40af' stroke-width='2'/%3E%3Cpath d='M25 40 h30 M40 25 v30' stroke='%231e40af' stroke-width='2'/%3E%3Ccircle cx='40' cy='40' r='5' fill='%231e40af'/%3E%3C/svg%3E");
+  background-size: 340px 340px, 220px 220px;
+  background-position: 0 0, 170px 110px;
+}
+
+.container-fluid, .container {
+  position: relative;
+  z-index: 1;
 }

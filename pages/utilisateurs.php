@@ -233,15 +233,17 @@ function loadUsers() {
 }
 
 // Ajouter
+// APRÈS
 document.getElementById('btnSauvegarderUser').addEventListener('click', () => {
   const fd = new FormData(document.getElementById('formAjouterUser'));
   fetch('../actions/user_store.php', {method:'POST', body:fd})
-    .then(r=>r.text()).then(t => {
-      // user_store.php redirige, on détecte l'erreur via le contenu
-      loadUsers();
-      bootstrap.Modal.getInstance(document.getElementById('modalAjouterUser')).hide();
-      document.getElementById('formAjouterUser').reset();
-      showToast('Utilisateur ajouté avec succès.');
+    .then(r=>r.json()).then(d => {  // ✅ .text() → .json()
+      showToast(d.msg, d.ok?'success':'error');  // ✅ affiche le bon message
+      if (d.ok) {  // ✅ ferme le modal seulement si succès
+        bootstrap.Modal.getInstance(document.getElementById('modalAjouterUser')).hide();
+        document.getElementById('formAjouterUser').reset();
+        loadUsers();
+      }
     });
 });
 
